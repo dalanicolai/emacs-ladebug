@@ -31,27 +31,27 @@
 ;;;###autoload
 (defun ldbg (&rest args)
   (setq ldbg-counter (1+ ldbg-counter))
-  (apply #'lwarn (buffer-name) :debug
+  (apply #'lwarn major-mode :debug
          (concat
-          (number-to-string counter)
+          (number-to-string ldbg-counter)
           " "
-          (number-to-string (minibuffer-depth))
+          ;; (number-to-string (minibuffer-depth))
           (propertize (apply #'concat (make-list (1- (length args)) " %s"))
                       'face '(foreground-color . "red"))
           " %s")
          args)
   (car (last args)))
 
-(defun ldbg-wrap (function-name)
+(defun ldbg-wrap (fn-name &rest args)
   (pcase-let* ((thing (thing-at-point 'sexp))
-	       (new-thing (concat "(" function-name " " thing ")"))
+	       (new-thing (concat "(" fn-name " " (string-join (mapcar #'prin1-to-string args)) " " thing ")"))
 	       (`(,beg . ,end) (bounds-of-thing-at-point 'sexp)))
-    (replace-string-in-region thing  new-thing beg (+ beg (length new-thing)))))
+    (replace-string-in-region thing new-thing beg (+ beg (length new-thing)))))
 
 
-(defun ldbg-ldbg-wrap ()
-  (interactive)
-  (ldbg-wrap "ldbg"))
+(defun ldbg-ldbg-wrap (&optional arg)
+  (interactive "P")
+  (apply #'ldbg-wrap "ldbg" (when arg (list (read-string "Message: ")))))
 
 (defun ldbg-ldbg-unwrap ()
   (interactive)
@@ -70,8 +70,6 @@
   (interactive)
   (when-let (b (get-buffer-create "*Warnings*"))
     (switch-to-buffer b)))
-
-
 
 (provide 'ladebug)
 ;;; ladebug.el ends here
