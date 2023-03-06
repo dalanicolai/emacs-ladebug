@@ -31,7 +31,7 @@
 ;;;###autoload
 (defun ldbg (&rest args)
   (setq ldbg-counter (1+ ldbg-counter))
-  (apply #'lwarn 'doc-scroll :debug
+  (apply #'lwarn (buffer-name) :debug
          (concat
           (number-to-string counter)
           " "
@@ -65,7 +65,13 @@
 	       (`(,beg . ,end) (bounds-of-thing-at-point 'sexp)))
     (backward-char 1)
     (replace-string-in-region old (thing-at-point 'sexp) beg end)))
-      
+
+(defun ldbg-switch-to-warning-buffer ()
+  (interactive)
+  (when-let (b (get-buffer-create "*Warnings*"))
+    (switch-to-buffer b)))
+
+
 
 (provide 'ladebug)
 ;;; ladebug.el ends here
